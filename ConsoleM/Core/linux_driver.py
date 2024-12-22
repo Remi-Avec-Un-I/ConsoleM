@@ -1,13 +1,17 @@
+import queue
 import re
 import os
 import sys
 import shutil
 import termios
+import tty
+
 
 class LinuxDriver:
     def __init__(self):
         self.OldStdinMode = None
         self.width, self.height = self.get_terminal_size()
+        self._handle = False
         self.init_termios()
 
     def init_termios(self):
@@ -45,13 +49,27 @@ class LinuxDriver:
             return int(res.group("x")), int(res.group("y"))
         return -1, -1
 
+    def handle_key_input(self, q: queue.Queue):
+        self._handle = True
+        try:
+            while self._handle:
+                tty.setraw(sys.stdin)
+                key = sys.stdin.read(1)
+                q.put(key)
+        finally:
+            termios.tcsetattr(sys.stdin, termios.TCSAFLUSH, self.OldStdinMode)
+
+    def stop_handle_key_input(self):
+        self._handle = False
+
 
 if __name__ == "__main__":
-    from ConsoleM.Core.terminal import Terminal
+    from ConsoleM.Core.terminal import move_cursor
+
     print(os.getcwd())
     driver = LinuxDriver()
     print(driver.get_terminal_size())  # (80, 24)
     print(os.get_terminal_size())
     print(driver.get_cursor_position())
-    terminal = Terminal().move_cursor(10, 10)
+    move_cursor(10, 10)
     print(driver.get_cursor_position())
