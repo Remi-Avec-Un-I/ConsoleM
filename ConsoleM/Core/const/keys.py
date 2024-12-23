@@ -10,5 +10,11 @@ class Keys(Enum):
     TAB = '\t'
     ENTER = '\n'
 
+    @property
+    def get_name(self):
+        return self.name.lower().replace("_", " ")
+
 if __name__ == "__main__":
     print("\x1b" in Keys)
+    # get Keys.ARROW from "ARROW"
+    print(Keys["ARROW"])

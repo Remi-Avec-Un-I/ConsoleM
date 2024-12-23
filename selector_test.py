@@ -7,5 +7,5 @@ items = [
     Items("Item 4"*100, 4),
     Items("Item 5", 5),
 ]
-rst = selector(items, "Select an item: ", 1, 3)
+rst = selector(items, "Select an item: ", 1, 3, arrow="->", empty_arrow="  ")
 print(rst)
