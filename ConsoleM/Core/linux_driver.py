@@ -12,7 +12,7 @@ class LinuxDriver:
         self.OldStdinMode = None
         self.width, self.height = self.get_terminal_size()
         self._handle = False
-        self.init_termios()
+        self.inited = False
 
     def init_termios(self):
         self.OldStdinMode = termios.tcgetattr(sys.stdin)
@@ -36,6 +36,9 @@ class LinuxDriver:
         return width, height
 
     def get_cursor_position(self) -> tuple[int, int]:
+        if not self.inited:
+            self.init_termios()
+            self.inited = True
         try:
             _ = ""
             sys.stdout.write("\x1b[6n")
@@ -49,19 +52,29 @@ class LinuxDriver:
             return int(res.group("x")), int(res.group("y"))
         return -1, -1
 
-    def handle_key_input(self, q: queue.Queue):
+    def handle_key_input(self, q: queue.Queue, keyboard_interrupt: bool = False):
         self._handle = True
         try:
+            self.set_raw_mode()
             while self._handle:
-                tty.setraw(sys.stdin)
                 key = sys.stdin.read(1)
+                if key == "\x03" and keyboard_interrupt:
+                    raise KeyboardInterrupt
                 q.put(key)
         finally:
-            termios.tcsetattr(sys.stdin, termios.TCSAFLUSH, self.OldStdinMode)
+            self.remove_raw_mode()
 
     def stop_handle_key_input(self):
         self._handle = False
 
+    def remove_raw_mode(self):
+        if not self.inited:
+            self.init_termios()
+            self.inited = True
+        termios.tcsetattr(sys.stdin, termios.TCSAFLUSH, self.OldStdinMode)
+
+    def set_raw_mode(self):
+        tty.setcbreak(sys.stdin.fileno())
 
 if __name__ == "__main__":
     from ConsoleM.Core.terminal import move_cursor
