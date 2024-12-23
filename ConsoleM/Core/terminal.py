@@ -20,8 +20,8 @@ class Terminal:
         else:
             raise NotImplementedError('Unsupported OS')
 
-    def handle_key_input(self, keyboard_interrupt: bool = False):
-        self._tr_key_input = threading.Thread(target=self.driver.handle_key_input, args=(self.keys, keyboard_interrupt))
+    def handle_key_input(self):
+        self._tr_key_input = threading.Thread(target=self.driver.handle_key_input, args=(self.keys,))
         self._tr_key_input.start()
 
     def clear(self):
@@ -69,12 +69,11 @@ class Terminal:
         key: str = self.keys.get()
         if key.isprintable():
             return key
-        if key == Keys.ARROW.value:
-            key += self.keys.get()
-            key += self.keys.get()
-            return Keys(key).name
         if key in Keys:
             return Keys(key).name
+
+    def clear_line(self):
+        print("\033[2K", end="", flush=True)
 
 
 if __name__ == "__main__":

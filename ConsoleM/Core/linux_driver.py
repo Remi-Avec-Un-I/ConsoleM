@@ -1,6 +1,8 @@
+import io
 import queue
 import re
 import os
+import select
 import sys
 import shutil
 import termios
@@ -55,15 +57,18 @@ class LinuxDriver:
     def show_cursor(self):
         print("\033[?25h", end="", flush=True)
 
-    def handle_key_input(self, q: queue.Queue, keyboard_interrupt: bool = False):
+    def handle_key_input(self, q: queue.Queue):
         self._handle = True
         try:
             self.set_raw_mode()
             while self._handle:
-                key = sys.stdin.read(1)
-                if key == "\x03" and keyboard_interrupt:
-                    raise KeyboardInterrupt
-                q.put(key)
+                if select.select([sys.stdin], [], [], 0.1)[0]:
+                    key = sys.stdin.read(1)
+                    if key == "\x1b": # arrow keys, the escape sequence is 3 bytes long
+                        key += sys.stdin.read(2)
+                        q.put(key)
+                    else:
+                        q.put(key)
         finally:
             self.remove_raw_mode()
 

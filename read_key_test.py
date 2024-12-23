@@ -1,28 +1,24 @@
-from ConsoleM.Core import Terminal
+import sys
+import queue
+import threading
+import select
 
-terminal = Terminal()
-terminal.handle_key_input()
+q = queue.Queue()
+run = True
 
+def read():
+    while run:
+        # Use select to wait for input
+        if select.select([sys.stdin], [], [], 0.05)[0]:
+            q.put(sys.stdin.read(1))
+
+t = threading.Thread(target=read)
+t.start()
 
 while True:
-    key = terminal.keys.get()
-    if key == 'q':
-        print("Exiting...")
+    key = q.get()
+    print(f"{key!r}")
+    if key == "q":
+        run = False
         break
-    if key == "\x1b":
-        print("arrow key detected")
-        key += terminal.keys.get()
-        key += terminal.keys.get()
-        if key == "\x1b[A":
-            print("Up arrow key detected")
-        elif key == "\x1b[B":
-            print("Down arrow key detected")
-        elif key == "\x1b[C":
-            print("Right arrow key detected")
-        elif key == "\x1b[D":
-            print("Left arrow key detected")
-        else:
-            print(f"Unknown arrow key: {key!r}")
-        continue
-    print(f"Key: {key!r}", end="\r")
-terminal.stop_handle_key_input()
+t.join()

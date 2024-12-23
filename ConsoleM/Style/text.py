@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
+from ..Core import Terminal
+
 if TYPE_CHECKING:
     from _typeshed import SupportsWrite
 

@@ -38,7 +38,7 @@ class Render:
                 style = Style.get_style_from_str(lower)
 
         if color != Color.NONE and style == Style.NONE:
-            if ";" in color.value:
+            if isinstance(color.value, str):
                 return "\033[38;" + color.value + "m"
             return f"\033[{color.value}m"
 

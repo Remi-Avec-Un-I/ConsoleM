@@ -40,7 +40,14 @@ def _show_selector(items: Iterable[Items], selected: Iterable[Items], cursor: in
         else:
             print(f"{'>' if cursor == i else ' '} ◦ {item.representation}")
 
-def _lines_count(items_it: list[Items], width: int) -> int:
+def edit_indicator(indicator: str, message: str, terminal: Terminal, size = None):
+    if not size:
+        size = terminal.get_terminal_size()[0]
+
+
+def lines_count(items_it: list[Items] | str, width: int) -> int:
+    if isinstance(items_it, str):
+        return 1 + len(items_it) // width
     total_lines = 0
     for item in items_it:
         total_lines += 1 + len(item.representation) // width
@@ -81,7 +88,7 @@ def selector(
 
     terminal = Terminal()
     try:
-        terminal.hide_cursor()
+        #terminal.hide_cursor()
         terminal.handle_key_input()
 
         items_it = []
@@ -100,7 +107,8 @@ def selector(
 
         selected = []
         cursor = 0
-        text = Text(message + "[gray] (Use arrow keys to navigate, Enter to select, tab to validate) [/]", True)
+        indicator = "[gray] (Use arrow keys to navigate, Enter to select, tab to validate) [/]"
+        Text(message + indicator, True)
         _show_selector(items_it, selected, cursor, terminal)
 
         while True:
@@ -111,7 +119,7 @@ def selector(
                 cursor = (cursor - 1) if key == Keys.UP_ARROW.name else (cursor + 1)
                 cursor %= len(items_it)
 
-                terminal.move_cursor_relative(0, -(_lines_count(items_it, size[0])))
+                terminal.move_cursor_relative(0, -(lines_count(items_it, size[0])))
 
                 _show_selector(items_it, selected, cursor, terminal)
             if key == Keys.ENTER.name:
@@ -120,11 +128,28 @@ def selector(
                     selected.remove(items_it[cursor])
                 else:
                     selected.append(items_it[cursor])
-                terminal.move_cursor_relative(0, -(_lines_count(items_it, size[0])))
+                terminal.move_cursor_relative(0, -(lines_count(items_it, size[0])))
                 _show_selector(items_it, selected, cursor, terminal)
-            if key == 'q':
-                break
+
+            elif key == Keys.TAB.name:
+                if minimum <= len(selected) <= maximum:
+                    break
+                else:
+                    terminal.move_cursor_relative(0,
+                                                  -(lines_count(items_it, size[0]) + lines_count(indicator, size[0])))
+                    indicator = f"[red] (You must select between {minimum} and {maximum} items) [/]"
+                    terminal.clear_line()
+                    Text(message + indicator).print()
+                    _show_selector(items_it, selected, cursor, terminal)
+
+            else:
+                indicator = "[gray] (Use arrow keys to navigate, Enter to select, tab to validate) [/]"
+                terminal.move_cursor_relative(0, -(lines_count(items_it, size[0]) + lines_count(indicator, size[0])))
+                terminal.clear_line()
+                Text(message + indicator).print()
+                _show_selector(items_it, selected, cursor, terminal)
 
         terminal.stop_handle_key_input()
+        return [item.value for item in selected] if maximum > 1 else selected[0].value
     finally:
         terminal.show_cursor()
