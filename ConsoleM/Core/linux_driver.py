@@ -11,10 +11,11 @@ import tty
 
 class LinuxDriver:
     def __init__(self):
-        self.OldStdinMode = sys.stdin
+        self.OldStdinMode = termios.tcgetattr(sys.stdin)
         self.width, self.height = self.get_terminal_size()
         self._handle = False
         self.inited = False
+        self.getting_pos = False
 
     def init_termios(self):
         self.OldStdinMode = termios.tcgetattr(sys.stdin)
@@ -39,6 +40,7 @@ class LinuxDriver:
 
     def get_cursor_position(self) -> tuple[int, int]:
         try:
+            self.getting_pos = True
             _ = ""
             sys.stdout.write("\x1b[6n")
             sys.stdout.flush()
@@ -47,6 +49,7 @@ class LinuxDriver:
             res = re.match(r".*\[(?P<y>\d*);(?P<x>\d*)R", _)
         finally:
             termios.tcsetattr(sys.stdin, termios.TCSAFLUSH, self.OldStdinMode)
+            self.getting_pos = False
         if res:
             return int(res.group("x")), int(res.group("y"))
         return -1, -1
@@ -62,7 +65,7 @@ class LinuxDriver:
         try:
             self.set_raw_mode()
             while self._handle:
-                if select.select([sys.stdin], [], [], 0.1)[0]:
+                if not self.getting_pos and select.select([sys.stdin], [], [], 0.05)[0]:
                     key = sys.stdin.read(1)
                     if key == "\x1b": # arrow keys, the escape sequence is 3 bytes long
                         key += sys.stdin.read(2)

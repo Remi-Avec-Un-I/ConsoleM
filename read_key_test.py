@@ -1,24 +1,11 @@
-import sys
-import queue
-import threading
-import select
+from ConsoleM.Core.terminal import Terminal
 
-q = queue.Queue()
-run = True
-
-def read():
-    while run:
-        # Use select to wait for input
-        if select.select([sys.stdin], [], [], 0.05)[0]:
-            q.put(sys.stdin.read(1))
-
-t = threading.Thread(target=read)
-t.start()
+terminal = Terminal()
+terminal.handle_key_input()
 
 while True:
-    key = q.get()
+    key = terminal.keys.get()
     print(f"{key!r}")
-    if key == "q":
-        run = False
+    if key == 'q':
         break
-t.join()
+terminal.stop_handle_key_input()

@@ -98,7 +98,7 @@ def selector(
         key_select: list[str | Keys] | Keys | str = Keys.ENTER,
         key_validate: list[str | Keys] | Keys | str = Keys.TAB,
         config: SelectorConfig | dict = None,
-) -> int | any:
+) -> any:
     """
     Initialize the selector.
     :param items: The items to display in the selector.
@@ -211,7 +211,9 @@ def selector(
                 terminal.move_cursor_relative(0, -(lines_count(items_it, size[0])))
 
                 _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet)
-            if key in key_select_input:
+                continue
+
+            elif key in key_select_input:
                 size = terminal.get_terminal_size()
                 if items_it[cursor] in selected:
                     selected.remove(items_it[cursor])
@@ -219,6 +221,7 @@ def selector(
                     selected.append(items_it[cursor])
                 terminal.move_cursor_relative(0, -(lines_count(items_it, size[0])))
                 _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet)
+                continue
 
             elif key in key_validate_input:
                 if minimum <= len(selected) <= maximum:

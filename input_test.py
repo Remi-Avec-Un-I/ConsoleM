@@ -1,4 +1,4 @@
-from ConsoleM.Input import selector, Items
+from ConsoleM.Input import selector, Items, hidden
 
 items = [
     Items("Item 1", 1),
@@ -8,4 +8,7 @@ items = [
     Items("Item 5", 5),
 ]
 rst = selector(items, "Select an item: ", 1, 3, arrow="->", empty_arrow="  ")
+print(rst)
+
+rst = hidden("Enter a password: ")
 print(rst)

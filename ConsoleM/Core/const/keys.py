@@ -9,6 +9,7 @@ class Keys(Enum):
     LEFT_ARROW = '\x1b[D'
     TAB = '\t'
     ENTER = '\n'
+    BACKSPACE = '\x7f'
 
     @property
     def get_name(self):

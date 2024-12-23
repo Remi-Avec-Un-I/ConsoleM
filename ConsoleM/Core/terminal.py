@@ -27,6 +27,9 @@ class Terminal:
     def clear(self):
         print("\033[2J", end="")
 
+    def clear_end_of_line(self):
+        print("\033[K", end="")
+
     def stop_handle_key_input(self):
         self.driver.stop_handle_key_input()
         self._tr_key_input.join()
