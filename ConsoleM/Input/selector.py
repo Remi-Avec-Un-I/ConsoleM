@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from typing import Iterable
 
+from ConsoleM import Text
 from ConsoleM.Core import Terminal
+from ConsoleM.Core.const import Keys
+
 
 @dataclass
 class Items:
@@ -37,6 +40,12 @@ def _show_selector(items: Iterable[Items], selected: Iterable[Items], cursor: in
         else:
             print(f"{'>' if cursor == i else ' '} ◦ {item.representation}")
 
+def _lines_count(items_it: list[Items], width: int) -> int:
+    total_lines = 0
+    for item in items_it:
+        total_lines += 1 + len(item.representation) // width
+    return total_lines
+
 def selector(
         items: Iterable[Items | str | dict] = None,
         message: str = "",
@@ -70,36 +79,52 @@ def selector(
     if minimum > maximum:
         raise ValueError("The minimum number of items to select must be less than or equal to the maximum number of items to select.")
 
-
     terminal = Terminal()
-    terminal.handle_key_input()
+    try:
+        terminal.hide_cursor()
+        terminal.handle_key_input()
 
-    items_it = []
-    for item in items:
-        if isinstance(item, str):
-            items_it.append(Items(item, item))
-        elif isinstance(item, dict):
-            items_it.append(Items(item["representation"], item["value"]))
-        elif isinstance(item, Items):
-            items_it.append(item)
-        else:
-            raise ValueError(f"Invalid item type: {type(item)}. Expected str, dict or Items.")
+        items_it = []
+        total_lines = 0
+        size = terminal.get_terminal_size()
+        for item in items:
+            if isinstance(item, str):
+                items_it.append(Items(item, item))
+            elif isinstance(item, dict):
+                items_it.append(Items(item["representation"], item["value"]))
+            elif isinstance(item, Items):
+                items_it.append(item)
+            else:
+                raise ValueError(f"Invalid item type: {type(item)}. Expected str, dict or Items.")
+            total_lines += 1 + len(items_it[-1].representation) // size[0]
 
-    selected = []
-    cursor = 0
-    print(message)
-    _show_selector(items_it, selected, cursor, terminal)
+        selected = []
+        cursor = 0
+        text = Text(message + "[gray] (Use arrow keys to navigate, Enter to select, tab to validate) [/]", True)
+        _show_selector(items_it, selected, cursor, terminal)
 
-    while True:
-        key = terminal.keys.get()
-        if key == "\x1b":
-            key += terminal.keys.get() + terminal.keys.get()
-            if key == "\x1b[A":
-                cursor = (cursor - 1) % len(items_it)
-            elif key == "\x1b[B":
-                cursor = (cursor + 1) % len(items_it)
-            terminal.move_cursor_relative(0, -len(items_it))
-            _show_selector(items_it, selected, cursor, terminal)
-        if key =="q":
-            break
-    terminal.stop_handle_key_input()
+        while True:
+            key = terminal.get_key_from_queue()
+            if key in [Keys.UP_ARROW.name, Keys.DOWN_ARROW.name]:
+                size = terminal.get_terminal_size()
+
+                cursor = (cursor - 1) if key == Keys.UP_ARROW.name else (cursor + 1)
+                cursor %= len(items_it)
+
+                terminal.move_cursor_relative(0, -(_lines_count(items_it, size[0])))
+
+                _show_selector(items_it, selected, cursor, terminal)
+            if key == Keys.ENTER.name:
+                size = terminal.get_terminal_size()
+                if items_it[cursor] in selected:
+                    selected.remove(items_it[cursor])
+                else:
+                    selected.append(items_it[cursor])
+                terminal.move_cursor_relative(0, -(_lines_count(items_it, size[0])))
+                _show_selector(items_it, selected, cursor, terminal)
+            if key == 'q':
+                break
+
+        terminal.stop_handle_key_input()
+    finally:
+        terminal.show_cursor()

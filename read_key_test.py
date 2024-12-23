@@ -1,16 +1,7 @@
 from ConsoleM.Core import Terminal
 
 terminal = Terminal()
-print(terminal.get_raw_mode())
-exit()
 terminal.handle_key_input()
-
-
-for _ in range(10):
-    print("Test", flush=True)
-    print(terminal.get_cursor_position(), flush=True)
-terminal.stop_handle_key_input()
-exit()
 
 
 while True:

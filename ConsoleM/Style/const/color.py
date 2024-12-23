@@ -3,7 +3,10 @@ from __future__ import annotations
 from enum import Enum
 
 def get_all_colors() -> list[str]:
-    return ["reset", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", "default"]
+    return ["reset", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", "default", "gray"]
+
+class Color256:
+    GRAY = "5;8"
 
 class Color(Enum):
     NONE = -1
@@ -25,6 +28,8 @@ class Color(Enum):
     BRIGHT_MAGENTA = 95
     BRIGHT_CYAN = 96
     BRIGHT_WHITE = 97
+
+    GRAY = Color256.GRAY
 
     def __str__(self) -> str:
         return str(self.value)

@@ -37,8 +37,14 @@ class Render:
             elif lower := STYLE_ATTRIBUTES.get(lower):
                 style = Style.get_style_from_str(lower)
 
-        if color != Color.NONE:
-            return f"\033[{color.value}" + (f";{style.value}" if style != Style.NONE else "") + "m"
+        if color != Color.NONE and style == Style.NONE:
+            if ";" in color.value:
+                return "\033[38;" + color.value + "m"
+            return f"\033[{color.value}m"
+
+        if color != Color.NONE and style != Style.NONE:
+            return f"\033[{color.value};{style.value}m"
+
         if style != Style.NONE:
             return f"\033[{style.value}m"
         return ""

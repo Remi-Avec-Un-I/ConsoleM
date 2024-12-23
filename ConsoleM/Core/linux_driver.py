@@ -9,7 +9,7 @@ import tty
 
 class LinuxDriver:
     def __init__(self):
-        self.OldStdinMode = None
+        self.OldStdinMode = sys.stdin
         self.width, self.height = self.get_terminal_size()
         self._handle = False
         self.inited = False
@@ -36,9 +36,6 @@ class LinuxDriver:
         return width, height
 
     def get_cursor_position(self) -> tuple[int, int]:
-        if not self.inited:
-            self.init_termios()
-            self.inited = True
         try:
             _ = ""
             sys.stdout.write("\x1b[6n")
@@ -51,6 +48,12 @@ class LinuxDriver:
         if res:
             return int(res.group("x")), int(res.group("y"))
         return -1, -1
+
+    def hide_cursor(self):
+        print("\033[?25l", end="", flush=True)
+
+    def show_cursor(self):
+        print("\033[?25h", end="", flush=True)
 
     def handle_key_input(self, q: queue.Queue, keyboard_interrupt: bool = False):
         self._handle = True

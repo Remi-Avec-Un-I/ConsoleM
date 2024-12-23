@@ -2,10 +2,15 @@ import os
 import threading
 import queue
 from ConsoleM.Core.linux_driver import  LinuxDriver
+from ConsoleM.Core.const.keys import Keys
 
 
 class Terminal:
     def __init__(self):
+        """
+        Utility class for interacting with the terminal.
+        This is a wrapper around the LinuxDriver class and WindowsDriver class (wip).
+        """
         self.keys = queue.Queue()
         self._tr_key_input: threading.Thread | None = None
         if os.name == 'nt':
@@ -18,6 +23,9 @@ class Terminal:
     def handle_key_input(self, keyboard_interrupt: bool = False):
         self._tr_key_input = threading.Thread(target=self.driver.handle_key_input, args=(self.keys, keyboard_interrupt))
         self._tr_key_input.start()
+
+    def clear(self):
+        print("\033[2J", end="")
 
     def stop_handle_key_input(self):
         self.driver.stop_handle_key_input()
@@ -45,11 +53,28 @@ class Terminal:
         elif y < 0:
             print(f"\033[{abs(y)}A", end="", flush=True)
 
-    def clear(self):
-        print("\033[2J", end="")
+    def hide_cursor(self):
+        self.driver.hide_cursor()
+
+    def show_cursor(self):
+        self.driver.show_cursor()
 
     def get_cursor_position(self) -> tuple[int, int]:
         return self.driver.get_cursor_position()
+
+    def get_terminal_size(self) -> tuple[int, int]:
+        return self.driver.get_terminal_size()
+
+    def get_key_from_queue(self) -> str:
+        key: str = self.keys.get()
+        if key.isprintable():
+            return key
+        if key == Keys.ARROW.value:
+            key += self.keys.get()
+            key += self.keys.get()
+            return Keys(key).name
+        if key in Keys:
+            return Keys(key).name
 
 
 if __name__ == "__main__":
