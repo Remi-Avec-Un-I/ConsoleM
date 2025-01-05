@@ -70,10 +70,9 @@ class Terminal:
 
     def get_key_from_queue(self) -> str:
         key: str = self.keys.get()
-        if key.isprintable():
-            return key
         if key in Keys:
             return Keys(key).name
+        return key
 
     def clear_line(self):
         print("\033[2K", end="", flush=True)

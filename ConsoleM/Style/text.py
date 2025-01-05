@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-from ..Core import Terminal
+from . import Render
 
 if TYPE_CHECKING:
     from _typeshed import SupportsWrite
 
-from . import Render
 
 class Text:
     def __init__(self, content: str, print: bool = False):

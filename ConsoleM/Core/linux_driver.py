@@ -1,4 +1,3 @@
-import io
 import queue
 import re
 import os
@@ -88,7 +87,9 @@ class LinuxDriver:
         tty.setcbreak(sys.stdin.fileno())
 
 if __name__ == "__main__":
-    from ConsoleM.Core.terminal import move_cursor
+    from ConsoleM.Core.terminal import Terminal
+    terminal = Terminal()
+    move_cursor = terminal.move_cursor
 
     print(os.getcwd())
     driver = LinuxDriver()

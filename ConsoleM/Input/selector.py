@@ -213,7 +213,7 @@ def selector(
                 _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet)
                 continue
 
-            elif key in key_select_input:
+            if key in key_select_input:
                 size = terminal.get_terminal_size()
                 if items_it[cursor] in selected:
                     selected.remove(items_it[cursor])
@@ -223,15 +223,14 @@ def selector(
                 _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet)
                 continue
 
-            elif key in key_validate_input:
+            if key in key_validate_input:
                 if minimum <= len(selected) <= maximum:
                     break
-                else:
-                    terminal.move_cursor_relative(0,
-                                                  -(lines_count(items_it, size[0]) + lines_count(indicator, size[0])))
-                    terminal.clear_line()
-                    Text(message + indicator_error).print()
-                    _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet)
+                terminal.move_cursor_relative(0,
+                                              -(lines_count(items_it, size[0]) + lines_count(indicator, size[0])))
+                terminal.clear_line()
+                Text(message + indicator_error).print()
+                _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet)
 
             else:
                 terminal.move_cursor_relative(0, -(lines_count(items_it, size[0]) + lines_count(indicator, size[0])))

@@ -14,7 +14,7 @@ def hidden(prompt: str = '') -> str:
             if key == Keys.ENTER.name:
                 print(flush=True)
                 break
-            elif key == Keys.BACKSPACE.name:
+            if key == Keys.BACKSPACE.name:
                 if not rst:
                     continue
                 rst = rst[:-1]

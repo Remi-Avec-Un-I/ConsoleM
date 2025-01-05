@@ -8,8 +8,10 @@ class IntinputConfig:
     """
     The configuration for the intinput function.
     :param prompt: The prompt to display.
-    :param range: The range of accepted values. If None, any value is accepted. If both range and choice are provided, the choice list is prioritized.
-    :param choice: The list of accepted values. If None, any value is accepted. If both range and choice are provided, the choice list is prioritized.
+    :param range: The range of accepted values.
+        If None, any value is accepted. If both range and choice are provided, the choice list is prioritized.
+    :param choice: The list of accepted values.
+        If None, any value is accepted. If both range and choice are provided, the choice list is prioritized.
     :param error_message: The error message to display when the input is invalid.
     :param error_message_range: The error message to display when the input is out of range. The range is getting formatted with the range tuple.
     :param error_message_choice: The error message to display when the input is not in the choice list. The choice list is getting formatted with the choice list.
