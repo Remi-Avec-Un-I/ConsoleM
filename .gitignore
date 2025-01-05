@@ -177,3 +177,7 @@ test.py
 read_key_test.py
 
 input_test.py
+
+text_render.py
+
+activate.sh
