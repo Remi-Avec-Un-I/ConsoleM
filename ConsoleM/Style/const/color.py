@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from enum import Enum
 
+from ConsoleM.Style.const.ascii import AsciiEscapeCode
+
 def get_all_colors() -> list[str]:
     return ["reset", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", "default", "gray"]
 
@@ -32,7 +34,7 @@ class Color(Enum):
     GRAY = Color256.GRAY
 
     def __str__(self) -> str:
-        return str(self.value)
+        return AsciiEscapeCode.OCTAL + str(self.value)
 
     @classmethod
     def get_color_from_str(cls, color: str) -> Color:

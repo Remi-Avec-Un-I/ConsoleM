@@ -15,6 +15,10 @@ class Keys(Enum):
     def get_name(self):
         return self.name.lower().replace("_", " ")
 
+    @classmethod
+    def get_all_keys(cls):
+        return [key for key in cls]
+
 if __name__ == "__main__":
     print("\x1b" in Keys)
     # get Keys.ARROW from "ARROW"

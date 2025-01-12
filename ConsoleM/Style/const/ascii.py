@@ -1,4 +1,6 @@
 from enum import Enum
+from typing import Union
+
 
 class AsciiEscapeCode(Enum):
     """Control Sequence Introducer (CSI) marks the beginning of a control sequence, e.g. "\\u1b[31m"."""
@@ -15,5 +17,11 @@ class AsciiEscapeCode(Enum):
     def __str__(self) -> str:
         return str(self.value)
 
-    def build(self, code: int) -> str:
-        return f"{self.value}[{code}m"
+    def build(self, *codes: Union[int, str]) -> str:
+        if len(codes) > 2:
+            raise ValueError("Too many codes. Only 2 codes are allowed.")
+
+        if len(codes) == 1:
+            return f"{self.value}[{codes[0]}m"
+
+        return f"{self.value}[{codes[0]};{codes[1]}m"

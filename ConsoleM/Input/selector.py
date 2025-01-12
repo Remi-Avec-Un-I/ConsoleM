@@ -1,9 +1,10 @@
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Optional, Iterable, Union, overload
 
 from ConsoleM import Text
 from ConsoleM.Core import Terminal
 from ConsoleM.Core.const import Keys
+from ConsoleM.Style.const import Color, AsciiEscapeCode
 
 
 @dataclass
@@ -33,6 +34,7 @@ class SelectorConfig:
     :param empty_arrow: The empty arrow to display when an item is not selected.
     :param selected_bullet: The bullet to display when an item is selected.
     :param unselected_bullet: The bullet to display when an item is not selected.
+    :param current_ligne_color: The color of the current line. Default is green.
     :param key_down: The key(s) to go down.
     :param key_up: The key(s) to go up.
     :param key_select: The key(s) to select an item.
@@ -48,6 +50,7 @@ class SelectorConfig:
     empty_arrow: str = " "
     selected_bullet: str = "•"
     unselected_bullet: str = "◦"
+    current_ligne_color: Color | int = Color.GREEN
     key_down: list[str | Keys] | Keys | str = Keys.DOWN_ARROW
     key_up: list[str | Keys] | Keys | str = Keys.UP_ARROW
     key_select: list[str | Keys] | Keys | str = Keys.ENTER
@@ -59,14 +62,15 @@ def _show_selector(
         cursor: int,
         arrow: str, empty_arrow: str,
         selected_bullet: str, unselected_bullet: str,
+        color: Color | int,
 ):
     for i, item in enumerate(items):
         if item in selected:
-            print(f"{arrow if cursor == i else empty_arrow} {selected_bullet} {item.representation}")
+            print(f"{arrow if cursor == i else empty_arrow} {selected_bullet}{'' if (color == Color.NONE or cursor != i) else AsciiEscapeCode.OCTAL.build(color if isinstance(color, int) else color.value)} {item.representation}{AsciiEscapeCode.OCTAL.build(Color.RESET.value)}")
         else:
-            print(f"{arrow if cursor == i else empty_arrow} {unselected_bullet} {item.representation}")
+            print(f"{arrow if cursor == i else empty_arrow} {unselected_bullet}{'' if (color == Color.NONE or cursor != i) else AsciiEscapeCode.OCTAL.build(color if isinstance(color, int) else color.value)} {item.representation}{AsciiEscapeCode.OCTAL.build(Color.RESET.value)}")
 
-def get_key(*keys: str | Keys) -> list[Keys]:
+def get_key(*keys: Union[str, Keys]) -> list[Keys]:
     rst = []
     for key in keys:
         if isinstance(key, Keys):
@@ -74,7 +78,7 @@ def get_key(*keys: str | Keys) -> list[Keys]:
         rst.append(Keys[key.upper()])
     return rst
 
-def lines_count(items_it: list[Items] | str, width: int) -> int:
+def lines_count(items_it: Union[list[Items], str], width: int) -> int:
     if isinstance(items_it, str):
         return 1 + len(items_it) // width
     total_lines = 0
@@ -82,22 +86,49 @@ def lines_count(items_it: list[Items] | str, width: int) -> int:
         total_lines += 1 + len(item.representation) // width
     return total_lines
 
+@overload
 def selector(
-        items: Iterable[Items | str | dict] = None,
-        message: str = "",
-        minimum: int = 1,
-        maximum: int = 1,
-        indicator: str = "[gray] (Use {key_up} to go up, and {key_down} to go down, {key_select} to select, {key_validate} to validate) [/]",
-        indicator_error: str = "[red] (You must select between {minimum} and {maximum} items) [/]",
-        arrow: str = ">",
-        empty_arrow: str = " ",
-        selected_bullet: str = "•",
-        unselected_bullet: str = "◦",
-        key_down: list[str | Keys] | Keys | str = Keys.DOWN_ARROW,
-        key_up: list[str | Keys] | Keys | str = Keys.UP_ARROW,
-        key_select: list[str | Keys] | Keys | str = Keys.ENTER,
-        key_validate: list[str | Keys] | Keys | str = Keys.TAB,
-        config: SelectorConfig | dict = None,
+    items: Optional[Iterable[Union[Items, str, dict]]] = None,
+    message: str = "",
+    minimum: int = 1,
+    maximum: int = 1,
+    indicator: str = "[gray] (Use {key_up} to go up, and {key_down} to go down, {key_select} to select, {key_validate} to validate) [/]",
+    indicator_error: str = "[red] (You must select between {minimum} and {maximum} items) [/]",
+    arrow: str = ">",
+    empty_arrow: str = " ",
+    selected_bullet: str = "•",
+    unselected_bullet: str = "◦",
+    current_ligne_color : Color | int = Color.GREEN,
+    key_down: list[str | Keys] | Keys | str = Keys.DOWN_ARROW,
+    key_up: list[str | Keys] | Keys | str = Keys.UP_ARROW,
+    key_select: list[str | Keys] | Keys | str = Keys.ENTER,
+    key_validate: list[str | Keys] | Keys | str = Keys.TAB,
+) -> any:
+    ...
+
+@overload
+def selector(
+    config: Union[SelectorConfig, dict],
+) -> any:
+    ...
+
+def selector(
+    items: Optional[Iterable[Union[Items, str, dict]]] = None,
+    message: str = "",
+    minimum: int = 1,
+    maximum: int = 1,
+    indicator: str = "[gray] (Use {key_up} to go up, and {key_down} to go down, {key_select} to select, {key_validate} to validate) [/]",
+    indicator_error: str = "[red] (You must select between {minimum} and {maximum} items) [/]",
+    arrow: str = ">",
+    empty_arrow: str = " ",
+    selected_bullet: str = "•",
+    unselected_bullet: str = "◦",
+    current_ligne_color : Color | int = Color.GREEN,
+    key_down: list[str | Keys] | Keys | str = Keys.DOWN_ARROW,
+    key_up: list[str | Keys] | Keys | str = Keys.UP_ARROW,
+    key_select: list[str | Keys] | Keys | str = Keys.ENTER,
+    key_validate: list[str | Keys] | Keys | str = Keys.TAB,
+    config: Optional[SelectorConfig | dict] = None,
 ) -> any:
     """
     Initialize the selector.
@@ -111,6 +142,7 @@ def selector(
     :param empty_arrow: The empty arrow to display when an item is not selected.
     :param selected_bullet: The bullet to display when an item is selected.
     :param unselected_bullet: The bullet to display when an item is not selected.
+    :param current_ligne_color: The color of the current line. Default is green.
     :param key_down: The key(s) to go down.
     :param key_up: The key(s) to go up.
     :param key_select: The key(s) to select an item.
@@ -198,7 +230,7 @@ def selector(
         )
         indicator_error = indicator_error.format(minimum=minimum, maximum=maximum)
         Text(message + indicator, True)
-        _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet)
+        _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet, current_ligne_color)
 
         while True:
             key = terminal.get_key_from_queue()
@@ -208,9 +240,13 @@ def selector(
                 cursor = (cursor - 1) if key in key_up_input else (cursor + 1)
                 cursor %= len(items_it)
 
-                terminal.move_cursor_relative(0, -(lines_count(items_it, size[0])))
+                lines = lines_count(items_it, size[0])
+                terminal.move_cursor_relative(0, -lines)
+                print(' '*(size[0] * lines), end='')
+                terminal.move_cursor_relative(0, -lines)
+                print(end=' ')
 
-                _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet)
+                _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet, current_ligne_color)
                 continue
 
             if key in key_select_input:
@@ -220,7 +256,7 @@ def selector(
                 else:
                     selected.append(items_it[cursor])
                 terminal.move_cursor_relative(0, -(lines_count(items_it, size[0])))
-                _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet)
+                _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet, current_ligne_color)
                 continue
 
             if key in key_validate_input:
@@ -230,13 +266,13 @@ def selector(
                                               -(lines_count(items_it, size[0]) + lines_count(indicator, size[0])))
                 terminal.clear_line()
                 Text(message + indicator_error).print()
-                _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet)
+                _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet, current_ligne_color)
 
             else:
                 terminal.move_cursor_relative(0, -(lines_count(items_it, size[0]) + lines_count(indicator, size[0])))
                 terminal.clear_line()
                 Text(message + indicator).print()
-                _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet)
+                _show_selector(items_it, selected, cursor, arrow, empty_arrow, selected_bullet, unselected_bullet, current_ligne_color)
 
         terminal.stop_handle_key_input()
         return [item.value for item in selected] if maximum > 1 else selected[0].value

@@ -26,6 +26,8 @@ def hidden(prompt: str = '') -> str:
                 else:
                     terminal.move_cursor_relative(-1, 0)
                     terminal.clear_end_of_line()
+            if key in [key.name for key in Keys.get_all_keys()]:
+                continue
             else:
                 rst += key
                 print('*', end='', flush=True)

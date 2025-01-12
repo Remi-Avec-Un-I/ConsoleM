@@ -1,16 +1,19 @@
 import re
 
 from .const import Color, get_all_colors, Style, STYLE_ATTRIBUTES, AsciiEscapeCode, EMOJI
+from typing import Optional
 
 
 class Render:
-    def __init__(self, content: str = None):
+    def __init__(self, content: Optional[str] = None):
         self.content = content
         self.pattern_color = re.compile(r"\[(.+?)]")
         self.pattern_emoji = re.compile(r":([^ ]+?):")
 
-    def render(self, content: str = None):
+    def render(self, content: Optional[str] = None):
         if not content:
+            if not self.content:
+                return ""
             content = self.content
 
         for match in re.finditer(self.pattern_color, content):
@@ -39,14 +42,14 @@ class Render:
 
         if color != Color.NONE and style == Style.NONE:
             if isinstance(color.value, str):
-                return "\033[38;" + color.value + "m"
-            return f"\033[{color.value}m"
+                return AsciiEscapeCode.OCTAL.build(38, color.value)
+            return AsciiEscapeCode.OCTAL.build(color.value)
 
         if color != Color.NONE and style != Style.NONE:
-            return f"\033[{color.value};{style.value}m"
+            return AsciiEscapeCode.OCTAL.build(color.value, style.value)
 
         if style != Style.NONE:
-            return f"\033[{style.value}m"
+            return AsciiEscapeCode.OCTAL.build(style.value)
         return ""
 
     def emoji_render(self, content: str) -> str:

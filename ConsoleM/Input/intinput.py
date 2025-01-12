@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, Union, Tuple, Dict, Optional, Any
+from typing import Iterable, Union, Tuple, Dict, Optional, Any, overload
+
 
 @dataclass
 class IntinputConfig:
@@ -22,6 +23,21 @@ class IntinputConfig:
     error_message: str = "Please enter a valid number."
     error_message_range: str = "Please enter a number between {range[0]} and {range[1]}."
     error_message_choice: str = "Please enter a number from the list: {choice}."
+
+@overload
+def intinput(config: IntinputConfig) -> int:
+    ...
+
+@overload
+def intinput(
+    prompt: Optional[str] = None,
+    range: Optional[Tuple[int, int]] = None,
+    choice: Optional[Iterable[int]] = None,
+    error_message: str = "Please enter a valid number.",
+    error_message_range: str = "Please enter a number between {range[0]} and {range[1]}.",
+    error_message_choice: str = "Please enter a number from the list: {choice}.",
+) -> int:
+    ...
 
 def intinput(
     prompt: Optional[str] = None,
@@ -83,9 +99,9 @@ def intinput(
     prompt = prompt or ""
 
     while True:
-        value = input(prompt)
-        if value.isdigit() or (value[0] in ["-", "+"] and value[1:].isdigit()):
-            value = int(value)
+        inpt = input(prompt)
+        if inpt.isdigit() or (inpt[0] in ["-", "+"] and inpt[1:].isdigit()):
+            value = int(inpt)
             if choice:
                 if value in choice:
                     return value
