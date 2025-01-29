@@ -34,10 +34,10 @@ class Color(Enum):
     GRAY = Color256.GRAY
 
     def __str__(self) -> str:
-        return AsciiEscapeCode.OCTAL + str(self.value)
+        return f"{AsciiEscapeCode.OCTAL.value}{self.value}m"
 
     @classmethod
     def get_color_from_str(cls, color: str) -> Color:
         if color.lower() in get_all_colors():
-            return cls[color.upper()]
+            return cls[color.upper()] # type: ignore
         return cls.DEFAULT

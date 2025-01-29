@@ -1,0 +1,1 @@
+# use getwche() to read input from the console

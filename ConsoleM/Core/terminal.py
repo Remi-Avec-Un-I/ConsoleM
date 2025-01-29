@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import os
+import sys
 import threading
 import queue
 from ConsoleM.Core.linux_driver import  LinuxDriver
@@ -20,41 +23,74 @@ class Terminal:
         else:
             raise NotImplementedError('Unsupported OS')
 
-    def handle_key_input(self):
-        self._tr_key_input = threading.Thread(target=self.driver.handle_key_input, args=(self.keys,))
-        self._tr_key_input.start()
+    @staticmethod
+    def clear_line():
+        sys.stdout.write("\033[2K")
+        sys.stdout.flush()
 
-    def clear(self):
-        print("\033[2J", end="")
+    @staticmethod
+    def clear_lines_above(n: int):
+        for _ in range(n):
+            sys.stdout.write("\033[F")
+            sys.stdout.write("\033[2K")
+        sys.stdout.flush()
 
-    def clear_end_of_line(self):
-        print("\033[K", end="")
+    @staticmethod
+    def create_alternate_screen():
+        sys.stdout.write("\033[?1049h")
+        sys.stdout.flush()
 
-    def stop_handle_key_input(self):
-        self.driver.stop_handle_key_input()
-        self._tr_key_input.join()
+    @staticmethod
+    def restore_alternate_screen():
+        sys.stdout.write("\033[?1049l")
+        sys.stdout.flush()
 
-    def move_cursor(self, x: int, y: int):
+    @staticmethod
+    def clear():
+        sys.stdout.write("\033[2J")
+
+    @staticmethod
+    def clear_end_of_line():
+        sys.stdout.write("\033[K")
+
+    @staticmethod
+    def move_cursor(x: int, y: int):
         """
         Move the cursor to the specified position.
         ex: move_cursor(1, 1) will move the cursor to the top left corner of the terminal.
         """
-        print(f"\033[{y};{x}H", end="", flush=True)
+        sys.stdout.write(f"\033[{y};{x}H")
+        sys.stdout.flush()
 
-    def move_cursor_relative(self, x: int, y: int):
+    @staticmethod
+    def move_cursor_relative(x: int, y: int):
         """
         Move the cursor relative to its current position.
         ex: move_cursor_relative(1, 0) will move the cursor one column to the right.
         move_cursor_relative(-1, 0) will move the cursor one column to the left.
         """
         if x > 0:
-            print(f"\033[{x}C", end="", flush=True)
+            sys.stdout.write(f"\033[{x}C")
         elif x < 0:
-            print(f"\033[{abs(x)}D", end="", flush=True)
+            sys.stdout.write(f"\033[{abs(x)}D")
         if y > 0:
-            print(f"\033[{y}B", end="", flush=True)
+            sys.stdout.write(f"\033[{y}B")
         elif y < 0:
-            print(f"\033[{abs(y)}A", end="", flush=True)
+            sys.stdout.write(f"\033[{abs(y)}A")
+        sys.stdout.flush()
+
+    @staticmethod
+    def write(text: str):
+        sys.stdout.write(text)
+        sys.stdout.flush()
+
+    def handle_key_input(self):
+        self._tr_key_input = threading.Thread(target=self.driver.handle_key_input, args=(self.keys,))
+        self._tr_key_input.start()
+
+    def stop_handle_key_input(self):
+        self.driver.stop_handle_key_input()
+        self._tr_key_input.join()
 
     def hide_cursor(self):
         self.driver.hide_cursor()
@@ -74,8 +110,7 @@ class Terminal:
             return Keys(key).name
         return key
 
-    def clear_line(self):
-        print("\033[2K", end="", flush=True)
+
 
 
 if __name__ == "__main__":

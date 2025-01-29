@@ -53,5 +53,5 @@ class Style(Enum):
     @classmethod
     def get_style_from_str(cls, style: str) -> Style:
         if style.lower() in get_all_styles():
-            return cls[style.upper()]
+            return cls[style.upper()] # type: ignore
         return cls.NORMAL

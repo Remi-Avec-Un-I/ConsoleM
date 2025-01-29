@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import queue
 import re
 import os
@@ -6,7 +8,6 @@ import sys
 import shutil
 import termios
 import tty
-
 
 class LinuxDriver:
     def __init__(self):
@@ -59,18 +60,58 @@ class LinuxDriver:
     def show_cursor(self):
         print("\033[?25h", end="", flush=True)
 
+    def getch(self):
+        # See the "Description" section here: https://en.wikipedia.org/wiki/UTF-8
+        b = os.read(0, 1)
+        b = ord(b)
+        if b & 0b10000000 == 0:
+            bs = bytes([b])
+        elif b & 0b11100000 == 0b11000000:
+            b2 = os.read(0, 1)
+            b2 = ord(b2)
+            bs = bytes([b, b2])
+        elif b & 0b11110000 == 0b11100000:
+            b23 = os.read(0, 2)
+            b23 = [ord(str(i)) for i in b23]
+            bs = bytes([b, *b23])
+        elif b & 0b11111000 == 0b11110000:
+            b234 = os.read(0, 3)
+            b234 = [ord(str(i)) for i in b234]
+            bs = bytes([b, *b234])
+        else:
+            raise ValueError(f'unexpected byte value {b}')
+        key = bs.decode()
+        return key
+
     def handle_key_input(self, q: queue.Queue):
         self._handle = True
         try:
             self.set_raw_mode()
+            first = ""
             while self._handle:
-                if not self.getting_pos and select.select([sys.stdin], [], [], 0.05)[0]:
-                    key = sys.stdin.read(1)
-                    if key == "\x1b": # arrow keys, the escape sequence is 3 bytes long
-                        key += sys.stdin.read(2)
+                if not self.getting_pos and select.select([0], [], [], 0.05)[0]:
+                    key = self.getch()
+                    if key == "\x1b":
+                        if select.select([0], [], [], 0.05)[0]:
+                            first = self.getch()
+                        if first == "[":
+                            if select.select([0], [], [], 0.05)[0]:
+                                key += first + self.getch()
+                            q.put(key)
+                        elif first == "":
+                            q.put(key)
+                        else:
+                            q.put(first)
+                            q.put(key)
+                        first = ""
+                        """    
+                    elif key.startswith("\x1b["): # special key, like the escape sequence that are 2 bytes long
+                        key += os.read(0, 1)
                         q.put(key)
+                        """
                     else:
                         q.put(key)
+
         finally:
             self.remove_raw_mode()
 
