@@ -1,5 +1,6 @@
 from enum import Enum
-
+from string import printable
+from functools import lru_cache
 
 class Keys(Enum):
     SPACE = ' '
@@ -85,6 +86,62 @@ class Keys(Enum):
 
     SQUARED = '²'
     AND = '&'
+    E_ACUTE = 'é'
+    QUOTE = '"' # "
+    APOSTROPHE = "'" # '
+    LEFT_PARENTHESIS = '('
+    RIGHT_PARENTHESIS = ')'
+    MINUS = '-'
+    UNDERSCORE = '_'
+    E_GRAVE = 'è'
+    C_CEDILLA = 'ç'
+    A_CIRCUMFLEX = 'â'
+    E_CIRCUMFLEX = 'ê'
+    I_CIRCUMFLEX = 'î'
+    O_CIRCUMFLEX = 'ô'
+    U_CIRCUMFLEX = 'û'
+    A_GRAVE = 'à'
+    EQUAL = '='
+    PLUS = '+'
+    PERCENT = '%'
+    DOLLAR = '$'
+    EURO = '€'
+    POUND = '£'
+    TILDE = '~'
+    CARET = '^'
+    DIESE = '#'
+    STAR = '*'
+    DEGREE = '°'
+    SECTION = '§'
+    o_SLASH = 'ø'
+    O_SLASH = 'Ø'
+    MU = 'µ'
+    THORN = 'Þ'
+    THORN2 = 'þ'
+    ETH = 'Ð'
+    ETH2 = 'ð'
+    Æ = 'Æ'
+    æ = 'æ'
+
+    AT = '@'
+    LEFT_SQUARE_BRACKET = '['
+    RIGHT_SQUARE_BRACKET = ']'
+    LEFT_CURLY_BRACKET = '{'
+    RIGHT_CURLY_BRACKET = '}'
+    BACKSLASH = '\\'
+    PIPE = '|'
+    SEMICOLON = ';'
+    COLON = ':'
+    EXCLAMATION_MARK = '!'
+    QUESTION_MARK = '?'
+    COMMA = ','
+    DOT = '.'
+    SLASH = '/'
+    BACKQUOTE = '`'
+    GRAVE = '`'
+    ARROBASE = '@'
+
+
 
 
     CTRL_A = '\x01'
@@ -122,10 +179,12 @@ class Keys(Enum):
 
 
     @classmethod
+    @lru_cache()
     def get(cls, key, default=None):
         return cls.__members__.get(key, default)
 
     @classmethod
+    @lru_cache(maxsize=1)
     def get_from_value(cls, value, default=None):
         for key in cls.__members__:
             if cls[key].value == value:
@@ -133,21 +192,34 @@ class Keys(Enum):
         return default
 
     @classmethod
+    @lru_cache(maxsize=1)
     def get_all_keys(cls):
         return [key for key in cls]
 
+
     @classmethod
     def get_normal_chars(cls) -> list:
-        return [cls.__members__[key] for key in cls.__members__ if (Keys[key].value.isalpha() or Keys[key].value.isdigit()) and len(key) == 1]
+        return [
+            cls.__members__[key] for key in cls.__members__
+                if (Keys[key].value in printable or Keys[key].value.isalpha() or Keys[key].value.isdigit()) and len(Keys[key].value) == 1
+        ]
+
+    @classmethod
+    @lru_cache(maxsize=1)
+    def get_printable(cls) -> list:
+        return [
+            cls.__members__[key] for key in cls.__members__
+                if Keys[key].value in printable
+        ]
 
     @property
     def get_name(self):
         return self.name.lower().replace("_", " ")
 
 if __name__ == "__main__":
-    print("\x1b" in Keys)
     # get Keys.ARROW from "ARROW"
     print(Keys.__members__)
-    print(Keys["ESCAPE"])
+    print(Keys["SPACE"] in Keys.get_normal_chars(), Keys["SPACE"])
+    print(Keys["SPACE"].value in printable)
     print(Keys.get("RIGHT_ARROW", "Not found"))
     print(Keys.get_normal_chars())

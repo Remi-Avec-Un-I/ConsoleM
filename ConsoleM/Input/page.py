@@ -1,7 +1,8 @@
 import time
-
 from ConsoleM.Core import Terminal
 from ConsoleM import Text
+from ConsoleM.Core.const import Keys
+
 
 def _get_upper_border(size: tuple[int, int]) -> str:
     return f"┌{'─' * (size[0] - 2)}┐"
@@ -24,6 +25,10 @@ def _get_border(size: tuple[int, int]) -> str:
 
 def _get_lower_border(size: tuple[int, int]) -> str:
     return f"└{'─' * (size[0] - 2)}┘"
+
+def _show_page(terminal: Terminal, size: tuple[int, int], cursor_pos: list[int], text_pos: list[int], title: str = "", text: list[list[str]] = "") -> None:
+    pass
+
 
 def page(
     title: str = "",
@@ -53,11 +58,63 @@ def page(
         title_size += 2
 
     print(_get_middle_border(size, _get_upper_border(inner_size)))
-    for _ in range(size[1] - (title_size - 1 if title_size else 0) - 4 - 1):
+    for _ in range(size[1] - (title_size - 1 if title_size else 0) - 4 - (0 if title else 1)):
         print(_get_middle_border(size, _get_border(inner_size)))
     print(_get_middle_border(size, _get_lower_border(inner_size)))
     terminal.write(_get_lower_border(size))
     terminal.write(str(Text("[gray] Press Ctrl+X to exit. [/]")))
-    time.sleep(5)
+    terminal.move_cursor(4, (title_size+1 if title_size else 3))
+    cursor_pos = [4, (title_size+1 if title_size else 3)]
     terminal.show_cursor()
+    terminal.handle_key_input()
+    printable = [char for char in Keys.get_printable()]
+
+    rst = [[]]
+    text_pos = [0, 0]
+    while True:
+        key = terminal.get_key_from_queue()
+        key = Keys.get(key)
+        if not key:
+            continue
+        if key == Keys.CTRL_X:
+            break
+
+        if key == Keys.ENTER:
+            cursor_pos = [4, cursor_pos[1] + 1]
+            terminal.move_cursor(4, cursor_pos[1])
+            rst.append([])
+            text_pos[1] += 1
+
+        elif key == Keys.BACKSPACE:
+            if cursor_pos[0] == 4:
+                if cursor_pos[1] == (title_size+1 if title_size else 3):
+                    continue
+                cursor_pos = [inner_size[0] + 2, cursor_pos[1] - 1]
+                terminal.move_cursor(inner_size[0] + 2, cursor_pos[1])
+                terminal.clear_end_of_line()
+            else:
+                cursor_pos[0] -= 1
+                terminal.move_cursor_relative(-1, 0)
+                terminal.clear_end_of_line()
+                if text_pos[0] == len(rst[text_pos[1]]):
+                    rst[text_pos[1]].pop()
+                else:
+                    rst[text_pos[1]].pop(text_pos[0])
+
+        elif key in printable:
+            if key == Keys.TAB:
+                key = Keys.SPACE
+            cursor_pos[0] += 1
+            terminal.write(key.value)
+            if cursor_pos[0] == size[0] - 2:
+                cursor_pos = [4, cursor_pos[1] + 1]
+                terminal.move_cursor(4, cursor_pos[1])
+            if len(rst[text_pos[1]]) < cursor_pos[0] - 4:
+                rst[text_pos[1]].append(key.value)
+            else:
+                rst[text_pos[1]].insert(text_pos[0], key.value)
+
+    print(rst)
+    time.sleep(5)
+    terminal.stop_handle_key_input()
     terminal.restore_alternate_screen()
