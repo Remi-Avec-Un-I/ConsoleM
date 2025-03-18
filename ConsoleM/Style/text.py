@@ -9,16 +9,51 @@ if TYPE_CHECKING:
 
 
 class Text:
-    def __init__(self, content: str, print: bool = False):
-        self.content = content
-        if print:
-            self.print()
+    def __init__(self, content: str):
+        """
+        Initialize a Text object for styled terminal output.
+
+        The Text class allows you to create styled text using markup syntax:
+        - Colors: [red]text[/], [blue]text[/], etc.
+        - Styles: [bold]text[/], [underline]text[/], etc.
+        - Emojis: :emoji_name:
+        - Reset: [reset] to clear all styling
+
+        Args:
+            content (str): The text content with optional styling markup
+
+        Examples:
+            >>> Text("[red]Hello[/] World").print()
+            Hello World  # "Hello" will be red
+            
+            >>> Text("[blue bold]Styled[/] :smile: text").print() 
+            Styled 😊 text  # "Styled" will be blue and bold
+        """
+        self.ctn = content
+        self.cache = None
 
     def __str__(self):
         return self._render()
+    
+    @property
+    def content(self):
+        if self.cache is None:
+            self.cache = self._render()
+        return self.cache
+    
+    @property
+    def raw_content(self):
+        return self.ctn
+    
+    @content.setter
+    def content(self, value):
+        if not isinstance(value, str):
+            raise TypeError("Can't set content to a non-string value")
+        self.cache = None
+        self.ctn = value
 
     def _render(self):
-        return Render(self.content).render()
+        return Render(self.ctn).render()
 
     def print(self,
               *values: object,

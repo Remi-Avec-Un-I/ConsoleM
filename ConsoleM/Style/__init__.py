@@ -1,4 +1,3 @@
-from .render import Render
 from .text import Text
 
-__all__ = ["Render", "Text"]
+__all__ = ["Text"]
