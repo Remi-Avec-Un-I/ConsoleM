@@ -101,7 +101,6 @@ Create a full-screen alternate display:
 .. code-block:: python
     from ConsoleM import Terminal
     from ConsoleM.Style.text import Text
-    import time
 
     def main():
         # Create terminal instance
@@ -111,6 +110,9 @@ Create a full-screen alternate display:
         term.create_alternate_screen()
         
         try:
+            # Hide cursor
+            term.hide_cursor()
+
             # Get terminal dimensions
             width, height = term.get_terminal_size()
             
@@ -142,6 +144,7 @@ Create a full-screen alternate display:
         finally:
             # Cleanup
             term.stop_handle_key_input()
+            term.show_cursor()
             term.restore_alternate_screen()
 
     if __name__ == "__main__":
