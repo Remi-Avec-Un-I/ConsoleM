@@ -10,7 +10,6 @@ Core Components
    :maxdepth: 2
 
    core/terminal
-   core/drivers
 
 Style Components
 ---------------
