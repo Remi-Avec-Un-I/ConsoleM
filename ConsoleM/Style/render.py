@@ -5,12 +5,49 @@ from typing import Optional
 
 
 class Render:
+    """Handles the conversion of markup syntax into ANSI escape codes and emojis.
+    
+    This class processes:
+    - Color and style markup: [red], [bold], etc.
+    - Emoji shortcuts: :smile:, :heart:, etc.
+    - Reset markers: [/] or [reset]
+    
+    The class uses regular expressions to process markup:
+    - Color/style pattern: \[(.+?)] - Matches text between square brackets
+    - Emoji pattern: :([^ ]+?): - Matches text between colons
+    
+    Example:
+        >>> render = Render("[red]Hello[/]")
+        >>> print(render.render())  # Prints "Hello" in red
+        
+        >>> render = Render(":smile: Hello :heart:")
+        >>> print(render.render())  # Prints "😊 Hello ❤️"
+    """
+
     def __init__(self, content: Optional[str] = None):
+        """Initialize a Render instance.
+        
+        Args:
+            content (Optional[str]): Initial content to render
+        """
         self.content = content
         self.pattern_color = re.compile(r"\[(.+?)]")
         self.pattern_emoji = re.compile(r":([^ ]+?):")
 
     def render(self, content: Optional[str] = None):
+        """Render the content by converting markup to ANSI escape codes and emojis.
+        
+        This method processes:
+        - Color and style markup: [red], [bold], etc.
+        - Emoji shortcuts: :smile:, :heart:, etc.
+        - Reset markers: [/] or [reset]
+        
+        Args:
+            content (Optional[str]): Content to render. If None, uses the content from initialization.
+            
+        Returns:
+            str: The rendered text with ANSI escape codes and emojis
+        """
         if not content:
             if not self.content:
                 return ""
@@ -26,6 +63,19 @@ class Render:
         return content
 
     def ansi_builder(self, content: str) -> str:
+        """Build ANSI escape codes from style markup.
+        
+        This method processes color and style combinations:
+        - Single colors: [red]
+        - Single styles: [bold]
+        - Combined styles: [red bold]
+        
+        Args:
+            content (str): Style markup to process
+            
+        Returns:
+            str: ANSI escape code sequence
+        """
         if not content and not self.content:
             return ""
         content = content or self.content
@@ -53,6 +103,14 @@ class Render:
         return ""
 
     def emoji_render(self, content: str) -> str:
+        """Convert emoji shortcuts to actual emoji characters.
+        
+        Args:
+            content (str): Text containing emoji shortcuts
+            
+        Returns:
+            str: Text with emoji shortcuts replaced by actual emojis
+        """
         if not content and not self.content:
             return ""
         content = content or self.content
