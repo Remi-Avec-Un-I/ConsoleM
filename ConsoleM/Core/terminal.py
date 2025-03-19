@@ -201,10 +201,4 @@ class Terminal:
         if key in Keys:
             return Keys(key).name
         return key
-
-
-
-
-if __name__ == "__main__":
-    terminal = Terminal()
-    terminal.handle_key_input()
+    

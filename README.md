@@ -52,7 +52,7 @@ Text(f"[green]Terminal size: {width}x{height}[/]").print()
 
 ## Documentation
 
-For detailed documentation, visit: https://remi-avec-un-i.github.io/ConsoleM/
+For detailed documentation, visit: https://consolem.readthedocs.io/en/latest/index.html
 
 ## License
 
