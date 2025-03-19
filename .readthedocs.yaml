@@ -10,7 +10,4 @@ sphinx:
 
 python:
   install:
-    - method: pip
-      path: .
-    - method: pip
-      requirements: requirements.txt 
+    - requirements: requirements.txt 
