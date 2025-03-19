@@ -3,5 +3,5 @@
 from .Style import Text
 from .Core import Terminal, Keys
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __all__ = ["Text", "Terminal", "Keys"]
