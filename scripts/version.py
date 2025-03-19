@@ -3,9 +3,10 @@ import sys
 from pathlib import Path
 
 def update_version(version_type: str):
-    """Update version in setup.py and __init__.py"""
+    """Update version in setup.py, pyproject.toml and __init__.py"""
     setup_path = Path("setup.py")
     init_path = Path("ConsoleM/__init__.py")
+    pyproject_path = Path("pyproject.toml")
     
     # Read current version from setup.py
     setup_content = setup_path.read_text()
@@ -40,6 +41,16 @@ def update_version(version_type: str):
         setup_content
     )
     setup_path.write_text(new_setup_content)
+    
+    # Update pyproject.toml
+    if pyproject_path.exists():
+        pyproject_content = pyproject_path.read_text()
+        new_pyproject_content = re.sub(
+            r'version = "[^"]+"',
+            f'version = "{new_version}"',
+            pyproject_content
+        )
+        pyproject_path.write_text(new_pyproject_content)
     
     # Update __init__.py
     if init_path.exists():
