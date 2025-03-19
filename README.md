@@ -35,6 +35,8 @@ pip install ConsoleM
 
 ## Quick Start
 
+
+
 ```python
 from ConsoleM import Terminal
 from ConsoleM.Style.text import Text
