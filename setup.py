@@ -5,9 +5,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="ConsoleM",
-    version="0.1.0",
+    version="0.1.1",
     author="Remi",
-    author_email="your.email@example.com",
     description="A powerful Python library for terminal manipulation and text styling",
     long_description=long_description,
     long_description_content_type="text/markdown",
