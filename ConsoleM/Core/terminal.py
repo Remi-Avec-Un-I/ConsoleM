@@ -4,7 +4,12 @@ import os
 import sys
 import threading
 import queue
-from ConsoleM.Core.linux_driver import  LinuxDriver
+
+if os.name == 'nt':
+    raise NotImplementedError('Windows is not supported yet')
+else:
+    from ConsoleM.Core.linux_driver import  LinuxDriver as Driver
+
 from ConsoleM.Core.const.keys import Keys
 
 
@@ -38,12 +43,7 @@ class Terminal:
         """
         self.keys = queue.Queue()
         self._tr_key_input: threading.Thread | None = None
-        if os.name == 'nt':
-            raise NotImplementedError('Windows is not supported yet')
-        elif os.name == 'posix':
-            self.driver = LinuxDriver()
-        else:
-            raise NotImplementedError('Unsupported OS')
+        self.driver = Driver()
 
     @staticmethod
     def clear_line():
@@ -160,6 +160,17 @@ class Terminal:
         """
         self.driver.stop_handle_key_input()
         self._tr_key_input.join()
+
+    def get_key_from_str(self, key: str) -> Keys | None:
+        """Get the key objectfrom a string.
+        
+        Args:
+            key (str): The key to get
+        
+        Returns:
+            Keys: The key or None if not found
+        """
+        return Keys.get(key)
 
     def hide_cursor(self):
         """Hide the terminal cursor.

@@ -196,6 +196,11 @@ cython_debug/
 
 # TEST folder
 test/
+tests/
+
+# some personal scripts
+scripts/activate.sh
+scripts/ssh.sh
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
