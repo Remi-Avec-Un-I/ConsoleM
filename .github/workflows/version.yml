@@ -10,18 +10,26 @@ on:
   pull_request:
     branches: [ master ]
 
+# Add permissions for the GITHUB_TOKEN
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   version:
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+          cache: 'pip'
       
       - name: Check for version bump
         id: check
@@ -52,8 +60,8 @@ jobs:
         if: steps.check.outputs.bump == 'true'
         run: |
           python scripts/version.py ${{ steps.check.outputs.type }}
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add setup.py ConsoleM/__init__.py
           git commit -m "chore: bump version to ${{ steps.check.outputs.type }}"
           git push 
