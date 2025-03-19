@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'ConsoleM'
-copyright = '2025, Remi'
+copyright = '2024, Remi'
 author = 'Remi'
 
 version = '0.1.0'
@@ -23,7 +23,6 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx_rtd_theme',
 ]
 
 templates_path = ['_templates']
