@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-from . import Render
+from .render import Render
 
 if TYPE_CHECKING:
     from _typeshed import SupportsWrite
