@@ -99,53 +99,53 @@ Alternate Screen
 Create a full-screen alternate display:
 
 .. code-block:: python
-
     from ConsoleM import Terminal
     from ConsoleM.Style.text import Text
+    import time
 
-    term = Terminal()
+    def main():
+        # Create terminal instance
+        term = Terminal()
+        
+        # Create alternate screen
+        term.create_alternate_screen()
+        
+        try:
+            # Get terminal dimensions
+            width, height = term.get_terminal_size()
+            
+            # Clear the screen
+            term.clear()
+            
+            # Draw a box around the screen
+            top = "┌" + "─" * (width - 2) + "┐"
+            top = Text("[blue]" + top + "[/]").content
+            middle = "\n".join(["│" + " " * (width - 2) + "│" for _ in range(height - 2)])
+            middle = Text("[blue]" + middle + "[/]").content
+            bottom = "└" + "─" * (width - 2) + "┘"
+            bottom = Text("[blue]" + bottom + "[/]").content
+            term.write(top + middle + bottom)
+            
+            # Add some text
+            term.move_cursor(3, 3)
+            Text("[bold cyan]Welcome to Full Screen Mode[/]").print()
+            term.move_cursor(3, 4)
+            Text("[yellow]Press 'q' to quit[/]").print()
+            
+            # Handle input
+            term.handle_key_input()
+            while True:
+                key = term.get_key_from_queue()
+                if key.lower() == 'q':
+                    break
+                
+        finally:
+            # Cleanup
+            term.stop_handle_key_input()
+            term.restore_alternate_screen()
 
-    # Create an alternate screen (like 'less' or 'vim')
-    term.create_alternate_screen()
-
-    try:
-        # Your full-screen application code here
-        Text("[bold cyan]Full Screen Mode[/]").print()
-        Text("[yellow]Press Ctrl+C to exit[/]").print()
-        
-        # Example: Draw a box
-        width, height = term.get_terminal_size()
-        for y in range(1, height + 1):
-            term.move_cursor(1, y)
-            Text("[blue]│[/]").print()
-            term.move_cursor(width, y)
-            Text("[blue]│[/]").print()
-        
-        for x in range(1, width + 1):
-            term.move_cursor(x, 1)
-            Text("[blue]─[/]").print()
-            term.move_cursor(x, height)
-            Text("[blue]─[/]").print()
-        
-        # Corner characters
-        term.move_cursor(1, 1)
-        Text("[blue]┌[/]").print()
-        term.move_cursor(width, 1)
-        Text("[blue]┐[/]").print()
-        term.move_cursor(1, height)
-        Text("[blue]└[/]").print()
-        term.move_cursor(width, height)
-        Text("[blue]┘[/]").print()
-        
-        # Wait for input
-        term.handle_key_input()
-        while True:
-            key = term.get_key_from_queue()
-            if key == "q":
-                break
-    finally:
-        # Restore the original screen
-        term.restore_alternate_screen()
+    if __name__ == "__main__":
+        main()
 
 Line Management
 ~~~~~~~~~~~~~~
