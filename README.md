@@ -1,34 +1,58 @@
 # ConsoleM
 
-A Python library for terminal manipulation and styling.
+A powerful Python library for terminal manipulation and text styling. ConsoleM provides a simple and intuitive API for creating beautiful terminal applications with advanced features like cursor control, text styling, and keyboard input handling.
+
+## Features
+
+* **Terminal Manipulation**
+  * Precise cursor movement (absolute and relative positioning)
+  * Screen clearing and line management
+  * Alternate screen support for full-screen applications
+  * Terminal size detection and cursor position tracking
+  * Cursor visibility control
+  * Non-blocking keyboard input handling
+
+* **Text Styling**
+  * Rich text formatting with intuitive markup syntax
+  * 256-color support (foreground and background)
+  * Text styles (bold, underline, italic, etc.)
+  * Emoji support with automatic conversion
+  * Easy-to-use BBCode-like markup syntax
+  * Automatic style reset and cleanup
+
+* **Input Handling**
+  * Non-blocking keyboard input capture
+  * Key event queue management
+  * Special key detection (arrows, function keys, etc.)
+  * Thread-safe input processing
+  * Clean shutdown handling
 
 ## Installation
-
-You can install ConsoleM using pip:
 
 ```bash
 pip install ConsoleM
 ```
 
-## Usage
+## Quick Start
 
 ```python
 from ConsoleM import Terminal
-from ConsoleM.Style import *
+from ConsoleM.Style.text import Text
 
 # Create a terminal instance
 term = Terminal()
 
-# Use styling
-styled_text = Text("[red underline]Hello[reset], :aries: [blue bold]World[/]!")
-style_text.print()
+# Print styled text
+Text("[blue bold]Welcome to ConsoleM![/]").print()
+
+# Get terminal size
+width, height = term.get_terminal_size()
+Text(f"[green]Terminal size: {width}x{height}[/]").print()
 ```
 
-## Features
+## Documentation
 
-- Terminal manipulation
-- Text styling and coloring
-- Cross-platform compatibility
+For detailed documentation, visit: https://remi-avec-un-i.github.io/ConsoleM/
 
 ## License
 
