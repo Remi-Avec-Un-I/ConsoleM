@@ -13,5 +13,4 @@ python:
     - method: pip
       path: .
     - method: pip
-      requirements: requirements.txt
-    - sphinx-rtd-theme>=3.0.0 
+      requirements: requirements.txt 
