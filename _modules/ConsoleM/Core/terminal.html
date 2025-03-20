@@ -1,0 +1,375 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ConsoleM.Core.terminal &mdash; ConsoleM 0.1.10 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ConsoleM
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ConsoleM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ConsoleM.Core.terminal</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ConsoleM.Core.terminal</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
+
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ConsoleM.Core.windows_driver</span><span class="w"> </span><span class="kn">import</span> <span class="n">WindowsDriver</span> <span class="k">as</span> <span class="n">Driver</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ConsoleM.Core.linux_driver</span><span class="w"> </span><span class="kn">import</span>  <span class="n">LinuxDriver</span> <span class="k">as</span> <span class="n">Driver</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">ConsoleM.Core.const.keys</span><span class="w"> </span><span class="kn">import</span> <span class="n">Keys</span>
+
+
+<div class="viewcode-block" id="Terminal">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Terminal</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A high-level interface for terminal manipulation and input handling.</span>
+<span class="sd">    </span>
+<span class="sd">    This class provides methods for:</span>
+<span class="sd">    - Screen manipulation (clear, move cursor)</span>
+<span class="sd">    - Input handling</span>
+<span class="sd">    - Cursor control</span>
+<span class="sd">    - Terminal size detection</span>
+<span class="sd">    </span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; term = Terminal()</span>
+<span class="sd">        &gt;&gt;&gt; term.clear()</span>
+<span class="sd">        &gt;&gt;&gt; term.move_cursor(1, 1)</span>
+<span class="sd">        &gt;&gt;&gt; width, height = term.get_terminal_size()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Terminal.__init__">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize a new Terminal instance.</span>
+<span class="sd">        </span>
+<span class="sd">        This creates a terminal interface that supports:</span>
+<span class="sd">        - Screen manipulation (clear, move cursor)</span>
+<span class="sd">        - Input handling</span>
+<span class="sd">        - Cursor control</span>
+<span class="sd">        - Terminal size detection</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: If running on Windows (not supported yet) or unsupported OS</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keys</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tr_key_input</span><span class="p">:</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span> <span class="o">=</span> <span class="n">Driver</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.clear_line">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.clear_line">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_line</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear the current line from cursor position to the end.</span>
+<span class="sd">        </span>
+<span class="sd">        This is useful for updating progress or status lines.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[2K&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.clear_lines_above">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.clear_lines_above">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_lines_above</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear n lines above the current cursor position.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            n (int): Number of lines to clear above the current position</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[F&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[2K&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.create_alternate_screen">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.create_alternate_screen">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_alternate_screen</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an alternate screen buffer.</span>
+<span class="sd">        </span>
+<span class="sd">        This is useful for full-screen applications like text editors.</span>
+<span class="sd">        The original screen content is preserved and can be restored.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[?1049h&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.restore_alternate_screen">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.restore_alternate_screen">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">restore_alternate_screen</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restore the original screen after using alternate screen.</span>
+<span class="sd">        </span>
+<span class="sd">        This restores the terminal to its previous state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[?1049l&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.clear">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.clear">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear the entire terminal screen.</span>
+<span class="sd">        </span>
+<span class="sd">        This is equivalent to the &#39;clear&#39; command in the terminal.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[2J&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Terminal.clear_end_of_line">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.clear_end_of_line">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_end_of_line</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear from cursor position to the end of the current line.&quot;&quot;&quot;</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[K&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Terminal.move_cursor">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.move_cursor">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">move_cursor</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Move the cursor to the specified position.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            x (int): Column position (1-based)</span>
+<span class="sd">            y (int): Row position (1-based)</span>
+<span class="sd">            </span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; term.move_cursor(1, 1)  # Move to top-left corner</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[</span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s2">;</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">H&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.move_cursor_relative">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.move_cursor_relative">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">move_cursor_relative</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Move the cursor relative to its current position.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            x (int): Number of columns to move (positive = right, negative = left)</span>
+<span class="sd">            y (int): Number of rows to move (positive = down, negative = up)</span>
+<span class="sd">            </span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; term.move_cursor_relative(1, 0)  # Move one column right</span>
+<span class="sd">            &gt;&gt;&gt; term.move_cursor_relative(-1, 0)  # Move one column left</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">C&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[</span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">D&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[</span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s2">B&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[</span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="si">}</span><span class="s2">A&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.write">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.write">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write text to the terminal.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            text (str): Text to write</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.handle_key_input">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.handle_key_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle_key_input</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start capturing keyboard input in a separate thread.</span>
+<span class="sd">        </span>
+<span class="sd">        This enables non-blocking keyboard input handling.</span>
+<span class="sd">        Use get_key_from_queue() to retrieve pressed keys.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tr_key_input</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">handle_key_input</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tr_key_input</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.stop_handle_key_input">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.stop_handle_key_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop_handle_key_input</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop capturing keyboard input.</span>
+<span class="sd">        </span>
+<span class="sd">        This should be called when you&#39;re done with input handling.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">stop_handle_key_input</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tr_key_input</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.get_key_from_str">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.get_key_from_str">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_key_from_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Keys</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the key objectfrom a string.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            key (str): The key to get</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Keys: The key or None if not found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Keys</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Terminal.hide_cursor">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.hide_cursor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hide_cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hide the terminal cursor.</span>
+<span class="sd">        </span>
+<span class="sd">        Useful for full-screen applications or when you don&#39;t want the cursor visible.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">hide_cursor</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.show_cursor">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.show_cursor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show_cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Show the terminal cursor.</span>
+<span class="sd">        </span>
+<span class="sd">        Restores cursor visibility after hiding it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">show_cursor</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.get_cursor_position">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.get_cursor_position">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cursor_position</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the current cursor position.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[int, int]: Current (x, y) position of the cursor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get_cursor_position</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.get_terminal_size">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.get_terminal_size">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_terminal_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the current terminal dimensions.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[int, int]: Current (width, height) of the terminal</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get_terminal_size</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Terminal.get_key_from_queue">
+<a class="viewcode-back" href="../../../api/core/terminal.html#ConsoleM.Core.terminal.Terminal.get_key_from_queue">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_key_from_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the next key press from the input queue.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The pressed key or special key name (e.g., &#39;UP_ARROW&#39;, &#39;ENTER&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">Keys</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Keys</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">return</span> <span class="n">key</span></div>
+</div>
+
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Remi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
