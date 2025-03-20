@@ -6,7 +6,7 @@ import threading
 import queue
 
 if os.name == 'nt':
-    raise NotImplementedError('Windows is not supported yet')
+    from ConsoleM.Core.windows_driver import WindowsDriver as Driver
 else:
     from ConsoleM.Core.linux_driver import  LinuxDriver as Driver
 
